@@ -15,11 +15,9 @@ router.post("/signup", async (req, res) => {
     if (duplicate === true) {
       throw new Error();
     }
+    const token = await user.getAuth();
     await relation.save();
     await post.save();
-
-    const token = await user.getAuth();
-
     res.status(200).send({ user, token });
   } catch (err) {
     res.status(500).send();
