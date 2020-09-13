@@ -139,6 +139,7 @@ userSchema.methods.toJSON = function (noAuth) {
   if (noAuth === true) {
     delete userObject.email;
     delete userObject.__v;
+    delete userObject.birthday;
   }
 
   return userObject;
