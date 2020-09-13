@@ -16,9 +16,9 @@ router.post("/signup", async (req, res) => {
       throw new Error();
     }
     const token = await user.getAuth();
-    user.save();
-    relation.save();
-    post.save();
+    await user.save();
+    await relation.save();
+    await post.save();
     res.status(200).send({ user, token });
   } catch (err) {
     res.status(500).send();
