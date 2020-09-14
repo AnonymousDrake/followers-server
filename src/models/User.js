@@ -63,10 +63,6 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
-    birthday: {
-      type: Date,
-      trim: true,
-    },
     bio: {
       type: String,
       trim: true,
@@ -139,7 +135,6 @@ userSchema.methods.toJSON = function (noAuth) {
   if (noAuth === true) {
     delete userObject.email;
     delete userObject.__v;
-    delete userObject.birthday;
   }
 
   return userObject;

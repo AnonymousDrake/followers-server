@@ -1,23 +1,19 @@
 const express = require("express");
 const User = require("../models/User");
 const auth = require("../middlewares/auth");
-const Relation = require("../models/Relation");
-const Post = require("../models/Post");
 
 const router = new express.Router();
 
 router.post("/signup", async (req, res) => {
   const user = new User(req.body);
-  const relation = new Relation({ creator: user._id });
-  const post = new Post({ creator: user._id });
+
   try {
     const duplicate = await user.duplicateEmail();
     if (duplicate === true) {
       throw new Error();
     }
     const token = await user.getAuth();
-    await relation.save();
-    await post.save();
+
     res.status(200).send({ user, token });
   } catch (err) {
     res.status(500).send();
@@ -57,6 +53,7 @@ router.delete("/users/me/delete", auth, async (req, res) => {
   }
 });
 
+//searchBy=username
 router.get("/users/:id", auth, async (req, res) => {
   const _id = req.params.id;
   try {
@@ -102,7 +99,7 @@ router.post("/users/me/logoutAll", auth, async (req, res) => {
 });
 
 router.patch("/users/me", auth, async (req, res) => {
-  const allowedUpdates = ["name", "bio", "birthday", "username", "password"];
+  const allowedUpdates = ["name", "bio", "username", "password"];
   const updates = Object.keys(req.body);
   const isAllowed = updates.every((update) => allowedUpdates.includes(update));
   if (!isAllowed) {

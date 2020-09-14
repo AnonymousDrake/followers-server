@@ -26,7 +26,11 @@ router.post(
   upload.single("avatar"),
   async (req, res) => {
     try {
-      const post = await Post.findOne({ creator: req.user._id });
+      let post = await Post.findOne({ creator: req.user._id });
+
+      if (!post) {
+        post = new Post({ creator: req.user._id });
+      }
       const buffer = await sharp(req.file.buffer)
         .resize({ width: 180, height: 180 })
         .png()
@@ -46,6 +50,9 @@ router.post(
 router.delete("/users/me/avatar", auth, async (req, res) => {
   try {
     const post = await Post.findOne({ creator: req.user._id });
+    if (!post) {
+      return res.status(404).send();
+    }
     post.avatar = undefined;
     await post.save();
     res.send();
@@ -60,13 +67,18 @@ router.post(
   upload.single("post"),
   async (req, res) => {
     try {
-      const post = await Post.findOne({ creator: req.user._id });
+      let post = await Post.findOne({ creator: req.user._id });
+
+      if (!post) {
+        post = new Post({ creator: req.user._id });
+      }
       const buffer = await sharp(req.file.buffer)
         .resize({ height: 250, width: 250 })
-        .png().to;
+        .png()
+        .toBuffer();
       post.posts = post.posts.concat({ post: buffer });
       await post.save();
-      res.send(200).send();
+      res.status(200).send();
     } catch (err) {
       res.status(500).send();
     }
@@ -98,6 +110,9 @@ router.get("/users/me/posts/:postId", auth, async (req, res) => {
     const data = post.posts.find(
       (post) => post._id.toString() === _id.toString()
     );
+    if (!data) {
+      return res.status(404).send();
+    }
     res.status(200).send(data);
   } catch (err) {
     res.status(500).send();
@@ -108,7 +123,7 @@ router.get("/users/me/avatar", auth, async (req, res) => {
   try {
     const userPosts = await Post.findOne({ creator: req.user._id });
     if (!userPosts || !userPosts.avatar) {
-      return res.status(200).send([]);
+      return res.status(404).send();
     }
     res.set("Content-Type", "image/png").status(200).send(userPosts.avatar);
   } catch (err) {
@@ -129,6 +144,9 @@ router.get(
     const post = req.posts.find(
       (post) => post._id.toString() === postId.toString()
     );
+    if (!post) {
+      return res.status(404).send({ message: "No post found!" });
+    }
     res.status(200).send(post);
   }
 );
@@ -162,7 +180,7 @@ router.get("/users/:id/avatar", auth, async (req, res) => {
     return res.status(200).send({ message: "No avatar!" });
   }
   return res
-    .set("Content-Type", "image/jpg")
+    .set("Content-Type", "image/png")
     .status(200)
     .send(userPosts.avatar);
 });

@@ -4,26 +4,39 @@ const Relation = require("../models/Relation");
 const postMiddleware = async (req, res, next) => {
   try {
     const relation = await Relation.findOne({ creator: req.user._id });
+
     if (!relation) {
       throw new Error();
     }
-    const following = await relation.followings.find(async (following) => {
-      following._id.toString() === req.params.id.toString();
-    });
-    if (!following) {
-      throw new Error({ error: "Follow user to view profile!" });
-    }
-    const userPosts = await Post.findOne({ creator: req.params.id });
 
+    const following = relation.followings.find(
+      (following) =>
+        following.followingId.toString() === req.params.id.toString()
+    );
+
+    if (following === undefined) {
+      throw new Error();
+    }
+    let userPosts = await Post.findOne({ creator: req.params.id });
+    if (!userPosts) {
+      userPosts = new Post({ creator: req.params.id });
+      await userPosts.save();
+    }
     req.posts = userPosts.posts;
-    const followingUser = await Relation.findOne({
+    let followingUser = await Relation.findOne({
       creator: following.followingId,
     });
+
+    if (!followingUser) {
+      followingUser = new Relation({ creator: following.followingId });
+      await followingUser.save();
+    }
+
     req.followings = followingUser.followings;
     req.followers = followingUser.followers;
     next();
   } catch (err) {
-    res.status(401).send();
+    res.status(401).send({ Error: "user not followed" });
   }
 };
 

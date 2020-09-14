@@ -16,6 +16,10 @@ const postSchema = new mongoose.Schema(
         post: {
           type: Buffer,
         },
+        postedAt: {
+          type: Date,
+          default: Date.now(),
+        },
       },
     ],
   },
