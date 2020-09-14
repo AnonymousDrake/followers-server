@@ -47,50 +47,48 @@ router.post("/users/me/:id/send", auth, async (req, res) => {
 //action=reject
 router.post("/users/me/pendings/:id", auth, async (req, res) => {
   try {
-    console.log("Done");
     const relation = await Relation.findOne({ creator: req.user._id });
-    console.log("Done");
+
     const pending1 = relation.pendings.findIndex(
       (pending) =>
         pending.pendingId.toString() === req.params.id.toString() &&
         pending.sent === false
     );
-    console.log("Done");
+
     const relation2 = await Relation.findOne({ creator: req.params.id });
-    console.log("Done");
+
     const pending2 = relation2.pendings.findIndex(
       (pending) =>
         pending.pendingId.toString() === req.user._id.toString() &&
         pending.sent === true
     );
-    console.log("Done");
+
     if (pending2 === -1 || pending1 === -1) {
       return res.status(404).send();
     }
-    console.log("Done");
+
     relation.pendings.splice(pending1, 1);
-    console.log("Done");
+
     relation2.pendings.splice(pending2, 1);
-    console.log("Done");
+
     if (req.query.action === "reject") {
       await relation.save();
       await relation2.save();
       return res.status(200).send();
     }
-    console.log("Done");
+
     relation.followers = relation.followers.concat({
       followerId: req.params.id,
     });
-    console.log("Done");
 
     relation2.followings = relation2.followings.concat({
       followingId: req.user._id,
     });
-    console.log("Done");
+
     await relation.save();
-    console.log("Done");
+
     await relation2.save();
-    console.log("Done");
+
     res.status(200).send();
   } catch (err) {
     res.status(500).send();
@@ -104,14 +102,6 @@ router.get("/users/me/followers", auth, async (req, res) => {
     if (!relation) {
       return res.status(200).send([]);
     }
-    await relation
-      .populate({
-        path: "followers",
-        options: {
-          limit: 1,
-        },
-      })
-      .execPopulate();
     res.status(200).send(relation.followers);
   } catch (err) {
     res.status(500).send();
@@ -124,14 +114,6 @@ router.get("/users/me/followings", auth, async (req, res) => {
     if (!relation) {
       return res.status(200).send([]);
     }
-    await relation
-      .populate({
-        path: "followings",
-        options: {
-          limit: 1,
-        },
-      })
-      .execPopulate();
     res.status(200).send(relation.followings);
   } catch (err) {
     res.status(500).send();
