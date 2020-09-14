@@ -144,14 +144,6 @@ router.get("/users/me/pendings", auth, async (req, res) => {
     const pendingRequests = relation.pendings.filter(
       (pending) => pending.sent === false
     );
-    await pendingRequests
-      .populate({
-        path: "relations",
-        options: {
-          limit: 1,
-        },
-      })
-      .execPopulate();
     res.status(200).send(pendingRequests);
   } catch (err) {
     res.status(500).send();
