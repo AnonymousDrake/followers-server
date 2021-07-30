@@ -19,11 +19,17 @@ const userSchema = new mongoose.Schema(
       },
       lowercase: true,
     },
+    avatar: {
+      type: Buffer,
+    },
+    avatarURI: {
+      type: String,
+    },
     username: {
       type: String,
       required: true,
       minLength: [4, "Username must be atleast 4 characters long."],
-      maxLength: [18, "Username is too long."],
+      maxLength: [24, "Username is too long."],
       trim: true,
       unique: true,
       validate: (username) => {
@@ -49,7 +55,7 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       validate: (name) => {
-        if (name.length >= 30) {
+        if (name.length >= 31) {
           throw new Error("Name is too long.");
         }
       },
@@ -66,7 +72,7 @@ const userSchema = new mongoose.Schema(
     bio: {
       type: String,
       trim: true,
-      maxLength: [30, "Too long."],
+      maxLength: [300, "Too long."],
     },
   },
   {
@@ -85,17 +91,6 @@ userSchema.virtual("relations", {
   localField: "_id",
   foreignField: "creator",
 });
-
-userSchema.methods.duplicateEmail = async function () {
-  const user = this;
-  const duplicateEntry =
-    (await User.findOne({ email: user.email })) ||
-    (await User.findOne({ username: user.username }));
-  if (duplicateEntry) {
-    return true;
-  }
-  return false;
-};
 
 userSchema.methods.getAuth = async function () {
   const user = this;
@@ -131,6 +126,7 @@ userSchema.methods.toJSON = function (noAuth) {
   const userObject = user.toObject();
   delete userObject.password;
   delete userObject.tokens;
+  delete userObject.avatar;
 
   if (noAuth === true) {
     delete userObject.email;

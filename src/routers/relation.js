@@ -2,6 +2,7 @@ const express = require("express");
 const Relation = require("../models/Relation");
 const auth = require("../middlewares/auth");
 const postMiddleware = require("../middlewares/post");
+const User = require("../models/User");
 
 const router = new express.Router();
 
@@ -102,7 +103,27 @@ router.get("/users/me/followers", auth, async (req, res) => {
     if (!relation) {
       return res.status(200).send([]);
     }
-    res.status(200).send(relation.followers);
+    const followersInfo = relation.followers.find(async (follower) => {
+      const user = await User.findOne({ _id: follower.followerId });
+      console.log(user);
+      const userInfo = user.toJSON(true);
+      return userInfo;
+    });
+    res.status(200).send(followersInfo);
+  } catch (err) {
+    res.status(500).send();
+  }
+});
+
+router.get("/users/me/relations", auth, async (req, res) => {
+  try {
+    const relation = await Relation.findOne({ creator: req.user._id });
+    if (!relation) {
+      return res.status(200).send([]);
+    }
+    res
+      .status(200)
+      .send({ followers: relation.followers, followings: relation.followings });
   } catch (err) {
     res.status(500).send();
   }

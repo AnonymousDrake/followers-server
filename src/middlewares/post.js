@@ -17,12 +17,11 @@ const postMiddleware = async (req, res, next) => {
     if (following === undefined) {
       throw new Error();
     }
-    let userPosts = await Post.findOne({ creator: req.params.id });
+    const userPosts = await Post.find({ creator: req.params.id });
     if (!userPosts) {
-      userPosts = new Post({ creator: req.params.id });
-      await userPosts.save();
+      return res.status(200).send([]);
     }
-    req.posts = userPosts.posts;
+    req.posts = userPosts;
     let followingUser = await Relation.findOne({
       creator: following.followingId,
     });

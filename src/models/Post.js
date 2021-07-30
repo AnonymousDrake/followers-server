@@ -1,32 +1,39 @@
 const mongoose = require("mongoose");
 
-const postSchema = new mongoose.Schema(
-  {
-    creator: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      unique: true,
-      ref: "User",
-    },
-    avatar: {
-      type: Buffer,
-    },
-    posts: [
-      {
-        post: {
-          type: Buffer,
-        },
-        postedAt: {
-          type: Date,
-          default: Date.now(),
-        },
-      },
-    ],
+const postSchema = new mongoose.Schema({
+  creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "User",
   },
-  {
-    timeStamps: true,
-  }
-);
+  data: {
+    type: Buffer,
+    required: true,
+  },
+  postedAt: {
+    type: Date,
+    default: Date.now,
+  },
+  likes: {
+    type: [String],
+    default: [],
+  },
+  captions: {
+    type: String,
+    maxlength: 300,
+  },
+  uri: {
+    type: String,
+    required: true,
+  },
+});
+
+postSchema.method.toJSON = function () {
+  const post = this;
+  const postObject = post.toObject();
+  delete postObject.data;
+  return postObject;
+};
 
 const Post = mongoose.model("Post", postSchema);
 
